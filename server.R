@@ -84,12 +84,14 @@ shinyServer(function(input, output) {
          if (input$colname == 0) {
              x <- read.table(text=input$text1, sep="\t")
              dat <- as.matrix(x)
+             options(digits=3)
              resRM <- RM(dat)
              p.res <- person.parameter(resRM)
              list(rasch = resRM, pp = p.res)
              
          } else {
              dat <- read.csv(text=input$text1, sep="\t")
+             options(digits=3)
              resRM <- RM(dat)
              p.res <- person.parameter(resRM)
              list(rasch = resRM, pp = p.res)
