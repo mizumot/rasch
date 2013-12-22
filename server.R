@@ -199,124 +199,146 @@ shinyServer(function(input, output) {
      }
     })
     
-
-
-    output$compPlot <- renderPlot({
-    if (input$compare == 1) {
-        if (input$colname == 0) {
-            p.res <- data()$pp
-            plot(p.res)
-            
-        } else {
-            
-            dat <- read.csv(text=input$text1, sep="\t")
-            p.res <- data()$pp
-            plot(p.res)
+    
+    
+    
+    
+    makecompPlot <- function(){
+        if (input$compare == 1) {
+            if (input$colname == 0) {
+                p.res <- data()$pp
+                plot(p.res)
+                
+            } else {
+                
+                dat <- read.csv(text=input$text1, sep="\t")
+                p.res <- data()$pp
+                plot(p.res)
+            }
         }
     }
+    
+    output$compPlot <- renderPlot({
+        print(makecompPlot())
     })
+
+
 
 
 
     # Person-Item Map
-    output$piMap <- renderPlot({
-    if (input$map == 1) {
-        if (input$colname == 0) {
-            resRM <- data()$rasch
-            plotPImap(resRM, sorted=TRUE)
-        
-        } else {
-            resRM <- data()$rasch
-            plotPImap(resRM, sorted=TRUE)
+    
+    makepiMap <- function(){
+        if (input$map == 1) {
+            if (input$colname == 0) {
+                resRM <- data()$rasch
+                plotPImap(resRM, sorted=TRUE)
+                
+            } else {
+                resRM <- data()$rasch
+                plotPImap(resRM, sorted=TRUE)
+            }
         }
     }
+    
+    output$piMap <- renderPlot({
+        print(makepiMap())
     })
 
 
 
+
+
     # Pathway Map (Bond & Fox, 2001, 2007 参照）
-    output$pathMap <- renderPlot({
-    if (input$path == 1) {
-
-        if (input$colname == 0) {
-            x <- read.table(text=input$text1, sep="\t")
-            dat <- as.matrix(x)
-        
-            res <- PCM(dat)
-            pparm <- person.parameter(res)
-            plotPWmap(res, pp=pparm, pmap=TRUE)
-
-        } else {
-        
-            dat <- read.csv(text=input$text1, sep="\t")
-        
-            res <- PCM(dat)
-            pparm <- person.parameter(res)
-            plotPWmap(res, pp=pparm, pmap=TRUE)
-        
+    makepathMap <- function(){
+        if (input$path == 1) {
+            
+            if (input$colname == 0) {
+                x <- read.table(text=input$text1, sep="\t")
+                dat <- as.matrix(x)
+                
+                res <- PCM(dat)
+                pparm <- person.parameter(res)
+                plotPWmap(res, pp=pparm, pmap=TRUE)
+                
+            } else {
+                
+                dat <- read.csv(text=input$text1, sep="\t")
+                
+                res <- PCM(dat)
+                pparm <- person.parameter(res)
+                plotPWmap(res, pp=pparm, pmap=TRUE)
+                
+            }
         }
     }
+    
+    output$pathMap <- renderPlot({
+        print(makepathMap())
     })
 
 
 
     # Item characteristic curves (ICC) Plot
-    output$ICC <- renderPlot({
-    if (input$icc == 1) {
-
-        if (input$colname == 0) {
-            x <- read.table(text=input$text1, sep="\t")
-            dat <- as.matrix(x)
-        
-            plot.rasch(rasch(dat))
-        
-        } else {
-        
-            dat <- read.csv(text=input$text1, sep="\t")
-        
-            plot.rasch(rasch(dat))
-        
+    makeICC <- function(){
+        if (input$icc == 1) {
+            
+            if (input$colname == 0) {
+                x <- read.table(text=input$text1, sep="\t")
+                dat <- as.matrix(x)
+                
+                plot.rasch(rasch(dat))
+                
+            } else {
+                
+                dat <- read.csv(text=input$text1, sep="\t")
+                
+                plot.rasch(rasch(dat))
+                
+            }
         }
     }
+    
+    output$ICC <- renderPlot({
+        print(makeICC())
     })
-
-
-
-
-
-
-    output$distPlot <- renderPlot({
+    
+    
+    
+    
+    
+    makedistPlot <- function(){
         if (input$colname == 0) {
             x <- read.table(text=input$text1, sep="\t")
             x <- as.matrix(x)
             x <- rowSums(x, na.rm=T)
-
-
+            
+            
         } else {
             x <- read.csv(text=input$text1, sep="\t")
             x <- rowSums(x, na.rm=T)
         }
-
-            simple.bincount <- function(x, breaks) {
-                nx <- length(x)
-                nbreaks <- length(breaks)
-                counts <- integer(nbreaks - 1)
-                    for (i in 1:nx) {
-                        lo <- 1
-                        hi <- nbreaks
-                        if (breaks[lo] <= x[i] && x[i] <= breaks[hi]) {
-                                while (hi - lo >= 2) {
-                                new <- (hi + lo) %/% 2
-                                if(x[i] > breaks[new])
-                                lo <- new
-                                else
-                                hi <- new
-                                }
-                            counts[lo] <- counts[lo] + 1
-                        }
+        
+        simple.bincount <- function(x, breaks) {
+            nx <- length(x)
+            nbreaks <- length(breaks)
+            counts <- integer(nbreaks - 1)
+            for (i in 1:nx) {
+                lo <- 1
+                hi <- nbreaks
+                if (breaks[lo] <= x[i] && x[i] <= breaks[hi]) {
+                    while (hi - lo >= 2) {
+                        new <- (hi + lo) %/% 2
+                        if(x[i] > breaks[new])
+                        lo <- new
+                        else
+                        hi <- new
                     }
-            return(counts)
+                    counts[lo] <- counts[lo] + 1
+                }
             }
+            return(counts)
+        }
         
         nclass <- nclass.FD(x)
         breaks <- pretty(x, nclass)
@@ -331,12 +353,18 @@ shinyServer(function(input, output) {
         yfit <- dnorm(xfit, mean = mean(x), sd = sd(x))
         yfit <- yfit * diff(h$mids[1:2]) * length(x)
         lines(xfit, yfit, col = "blue", lwd = 2)
+        
 
+    }
+
+    output$distPlot <- renderPlot({
+        print(makedistPlot())
     })
     
     
     
-    output$boxPlot <- renderPlot({
+    
+    makeboxPlot <- function(){
         if (input$colname == 0) {
             x <- read.table(text=input$text1, sep="\t")
             x <- as.matrix(x)
@@ -352,7 +380,26 @@ shinyServer(function(input, output) {
         points(mean(x), 0.9, pch = 18, col = "red", cex = 2)
         arrows(mean(x), 0.9, mean(x) + sd(x), length = 0.1, angle = 45, col = "red")
         arrows(mean(x), 0.9, mean(x) - sd(x), length = 0.1, angle = 45, col = "red")
+    }
+    
+    output$boxPlot <- renderPlot({
+        print(makeboxPlot())
     })
+    
+    
+    
+    
+    info <- reactive({
+        info1 <- paste("This analysis was conducted with ", strsplit(R.version$version.string, " \\(")[[1]][1], ".", sep = "")# バージョン情報
+        info2 <- paste("It was executed on ", date(), ".", sep = "")# 実行日時
+        cat(sprintf(info1), "\n")
+        cat(sprintf(info2), "\n")
+    })
+    
+    output$info.out <- renderPrint({
+        info()
+    })
+
 
 
 
@@ -400,5 +447,65 @@ shinyServer(function(input, output) {
     output$compare.out <- renderPrint({
        compare()
     })
+    
+    output$downloadDistPlot <- downloadHandler(
+    filename = function() {
+        paste('Distribution-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makedistPlot())
+		dev.off()
+	})
+    
+    output$downloadBoxPlot <- downloadHandler(
+    filename = function() {
+        paste('Boxplot-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makeboxPlot())
+		dev.off()
+	})
+    
+    output$downloadCompPlot <- downloadHandler(
+    filename = function() {
+        paste('Comparison-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makecompPlot())
+		dev.off()
+	})
+    
+    output$downloadPIMap <- downloadHandler(
+    filename = function() {
+        paste('PersonItem Map-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makepiMap())
+		dev.off()
+	})
+    
+    output$downloadPathMap <- downloadHandler(
+    filename = function() {
+        paste('Pathway Map-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makepathMap())
+		dev.off()
+	})
+    
+    output$downloadICC <- downloadHandler(
+    filename = function() {
+        paste('ICC-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makeICC())
+		dev.off()
+	})
 
 })
