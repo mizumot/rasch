@@ -57,9 +57,19 @@ shinyUI(bootstrapPage(
             br(),
 
             h3("Histogram of the total score (Using the raw score)"),
+            downloadButton('downloadDistPlot', 'Download the plot as pdf'),
+
             plotOutput("distPlot"),
 
             br(),
+
+            h3("Boxplot (Using the raw score)"),
+            downloadButton('downloadBoxPlot', 'Download the plot as pdf'),
+
+            plotOutput("boxPlot"),
+
+            br(),
+
             h3("Cronbach's coefficient alpha (Using the raw score)"),
             verbatimTextOutput("alpha.result.out"),
 
@@ -86,21 +96,41 @@ shinyUI(bootstrapPage(
             br(),
 
             verbatimTextOutput("compare.out"),
+            conditionalPanel(condition = "input.compare == true",
+            downloadButton('downloadCompPlot', 'Download the plot as pdf')
+            ),
+
             plotOutput("compPlot", width="70%"),
 
             br(),
+
+            conditionalPanel(condition = "input.map == true",
+            downloadButton('downloadPIMap', 'Download the plot as pdf')
+            ),
 
             plotOutput("piMap"),
 
             br(),
 
+            conditionalPanel(condition = "input.path == true",
+            downloadButton('downloadPathMap', 'Download the plot as pdf')
+            ),
+
             plotOutput("pathMap"),
 
             br(),
 
+            conditionalPanel(condition = "input.icc == true",
+            downloadButton('downloadICC', 'Download the plot as pdf')
+            ),
+
             plotOutput("ICC"),
 
-            br()
+            br(),
+            br(),
+
+            strong('R session info'),
+            verbatimTextOutput("info.out")
 
             ),
 
@@ -140,16 +170,6 @@ shinyUI(bootstrapPage(
             p('This web application is developed with',
             a("Shiny.", href="http://www.rstudio.com/shiny/", target="_blank"),
             ''),
-
-            br(),
-
-            strong('Citation'),
-            p('To cite R in publications use:',br(),
-              'R Core Team (2013). R: A language and environment for statistical computing.', br(),
-              '  R Foundation for Statistical Computing, Vienna, Austria. URL',a('http://www.R-project.org/', href='http://www.R-project.org/', target="_blank")),
-
-            p('The R Core Team and R package developers have invested a lot of time and effort,', br(),
-              'so please cite them accordiingly when using R for data analysis.'),
 
             br(),
 
@@ -201,6 +221,7 @@ shinyUI(bootstrapPage(
             br(),
 
             a(img(src="http://i.creativecommons.org/p/mark/1.0/80x15.png"), target="_blank", href="http://creativecommons.org/publicdomain/mark/1.0/"),
+
 
             p(br())
 
