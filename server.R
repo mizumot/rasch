@@ -63,7 +63,7 @@ shinyServer(function(input, output) {
             dat <- as.matrix(x)
             
             result1 <- cronbach.alpha(dat)
-            result2 <- alpha(dat, check.keys=F)
+            result2 <- alpha(dat, check.keys=F, na.rm=T)
             result2 <- round(result2$alpha.drop,3)
             list(result1, "Reliability if the item is dropped/deleted"=result2)
         
@@ -71,7 +71,7 @@ shinyServer(function(input, output) {
             dat <- read.csv(text=input$text1, sep="\t")
             
             result1 <- cronbach.alpha(dat)
-            result2 <- alpha(dat, check.keys=F)
+            result2 <- alpha(dat, check.keys=F, na.rm=T)
             result2 <- round(result2$alpha.drop,3)
             list(result1, "Reliability if the item is dropped/deleted"=result2)
         
@@ -254,21 +254,27 @@ shinyServer(function(input, output) {
         if (input$path == 1) {
             
             if (input$colname == 0) {
-                x <- read.table(text=input$text1, sep="\t")
-                dat <- as.matrix(x)
                 
-                res <- PCM(dat)
-                pparm <- person.parameter(res)
-                plotPWmap(res, pp=pparm, pmap=TRUE)
+                dat <- read.csv(text=input$text1, sep="\t", header=FALSE)
+                options(digits=3)
+                
+                dat <- dat[rowSums(dat) != length(dat),]
+                
+                resRM <- RM(dat)
+                pparm <- person.parameter(resRM)
+                plotPWmap(resRM, pp=pparm, pmap=TRUE)
                 
             } else {
                 
                 dat <- read.csv(text=input$text1, sep="\t")
+                options(digits=3)
                 
-                res <- PCM(dat)
-                pparm <- person.parameter(res)
-                plotPWmap(res, pp=pparm, pmap=TRUE)
-                
+                dat <- dat[rowSums(dat) != length(dat),]
+
+                resRM <- RM(dat)
+                pparm <- person.parameter(resRM)
+                plotPWmap(resRM, pp=pparm, pmap=TRUE)
+
             }
         }
     }
@@ -404,22 +410,6 @@ shinyServer(function(input, output) {
 
 
 
-
-
-
-    output$check <- renderTable({
-        head(check(), n = 10)
-    }, digits = 0)
-
-    output$downloadData <- downloadHandler(
-        filename = function() {
-            paste('Data-', Sys.Date(), '.csv', sep='')
-        },
-        content = function(file) {
-            write.csv(check(), file)
-        }
-    )
-
     output$textarea.out <- renderPrint({
         bs()
     })
@@ -448,64 +438,4 @@ shinyServer(function(input, output) {
        compare()
     })
     
-    output$downloadDistPlot <- downloadHandler(
-    filename = function() {
-        paste('Distribution-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makedistPlot())
-		dev.off()
-	})
-    
-    output$downloadBoxPlot <- downloadHandler(
-    filename = function() {
-        paste('Boxplot-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makeboxPlot())
-		dev.off()
-	})
-    
-    output$downloadCompPlot <- downloadHandler(
-    filename = function() {
-        paste('Comparison-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makecompPlot())
-		dev.off()
-	})
-    
-    output$downloadPIMap <- downloadHandler(
-    filename = function() {
-        paste('PersonItem Map-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makepiMap())
-		dev.off()
-	})
-    
-    output$downloadPathMap <- downloadHandler(
-    filename = function() {
-        paste('Pathway Map-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makepathMap())
-		dev.off()
-	})
-    
-    output$downloadICC <- downloadHandler(
-    filename = function() {
-        paste('ICC-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makeICC())
-		dev.off()
-	})
-
 })
