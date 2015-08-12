@@ -4,10 +4,8 @@ library(shinyAce)
 
 shinyUI(bootstrapPage(
 
-    headerPanel("Rasch Model (One-parameter logistic [1PL] IRT model)"),
+    headerPanel("Rasch Model (1PL IRT)"),
 
-
-    sidebarPanel(
 
 ########## Adding loading message #########
 
@@ -17,7 +15,7 @@ position: fixed;
 top: 0px;
 left: 0px;
 width: 100%;
-padding: 5px 0px 5px 0px;
+padding: 10px 0px 10px 0px;
 text-align: center;
 font-weight: bold;
 font-size: 100%;
@@ -30,18 +28,7 @@ z-index: 105;
 conditionalPanel(condition="$('html').hasClass('shiny-busy')",
 tags$div("Loading...",id="loadmessage")),
 
-########## Added till here ##########
-
-        p(strong("Options:")),
-
-        checkboxInput("compare", label = "Show comarison of raw scores and theta", FALSE),
-        checkboxInput("map", label = "Plot person-item map", FALSE),
-        checkboxInput("path", label = "Plot pathway map (Bond & Fox, 2001, 2007)", FALSE),
-        checkboxInput("icc", label = "Plot ICC (item characteristic curves)", FALSE),
-
-        br()
-    ),
-
+########## Added up untill here ##########
 
 
     mainPanel(
@@ -64,7 +51,7 @@ tags$div("Loading...",id="loadmessage")),
             br(),
 
             p('If you need to create 1-0 data first, use',
-            a('Binary (1-0) Data Converter', href='https://langtest.shinyapps.io/biconv/', target="_blank"), '.'),
+            a('Binary (1-0) Data Converter', href='https://langtest4.shinyapps.io/biconv', target="_blank"), '.'),
 
             br(),
 
@@ -89,6 +76,13 @@ tags$div("Loading...",id="loadmessage")),
             h3("Cronbach's coefficient alpha (Using the raw score)"),
             verbatimTextOutput("alpha.result.out"),
 
+            p('Drop if: Cronbach alpha when the item is removed', br(),
+            'r dropped: item-total correlation without the item', br(),
+            'r: item-total (point-biserial) correlation', br(),
+            'IF: item facility or item mean (proportion correct answers)', br(),
+            'ID: item discrimination (upper 1/3 - lower 1/3)', br()
+            ),
+
             br(),
 
             h3("Item estimate"),
@@ -108,6 +102,16 @@ tags$div("Loading...",id="loadmessage")),
 
             h3("Person fit"),
             verbatimTextOutput("person.fit.out"),
+
+            br(),
+
+
+            p(strong("Plot Options:")),
+
+            checkboxInput("compare", label = "Show comparison of raw scores and theta", FALSE),
+            checkboxInput("map", label = "Plot person-item map", FALSE),
+            checkboxInput("path", label = "Plot pathway map (Bond & Fox, 2001, 2007)", FALSE),
+            checkboxInput("icc", label = "Plot ICC (item characteristic curves)", FALSE),
 
             br(),
 

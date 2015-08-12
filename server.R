@@ -4,6 +4,8 @@ library(psych)
 library(ltm)
 library(CTT)
 library(eRm)
+library(beeswarm)
+
 
 
 shinyServer(function(input, output) {
@@ -62,21 +64,79 @@ shinyServer(function(input, output) {
             x <- read.table(text=input$text1, sep="\t")
             dat <- as.matrix(x)
             
-            result1 <- cronbach.alpha(dat)
-            result2 <- alpha(dat, check.keys=F, na.rm=T)
-            result2 <- round(result2$alpha.drop,3)
-            list(result1, "Reliability if the item is dropped/deleted"=result2)
-        
         } else {
             dat <- read.csv(text=input$text1, sep="\t")
             
-            result1 <- cronbach.alpha(dat)
-            result2 <- alpha(dat, check.keys=F, na.rm=T)
-            result2 <- round(result2$alpha.drop,3)
-            list(result1, "Reliability if the item is dropped/deleted"=result2)
-        
         }
+        
+        brownRpbi <- function(data,missing) {
+            m <- mean(rowSums(data))
+            sd <- sd(rowSums(data))
+            totalDat <- cbind(data,rowSums(data))
+            sortDat <- totalDat[order(-totalDat[,length(totalDat)]),]
+            r <- c()
+            itemD <- c()
+            rownames(sortDat) <- c(1:nrow(sortDat))
+            highDat <- head(sortDat,nrow(sortDat) %/% 3)
+            lowDat <- tail(sortDat,nrow(sortDat) %/% 3)
+            for (i in 1:length(data)) {
+                if (is.element(colnames(data)[i], missing) == F ) {
+                    mhigh <- mean(subset(totalDat[,length(totalDat)],(data[,i] == 1)))
+                    mlow <- mean(subset(totalDat[,length(totalDat)],(data[,i] == 0)))
+                    imean <- mean(data[,i])
+                    itemD <- c(itemD,round((mean(highDat[,i]) - mean(lowDat[,i])),3))
+                    rtemp <- round(cor(data[,i],totalDat[,ncol(totalDat)]),3)
+                    r <- c(r,rtemp)
+                }
+            }
+            pbiDF <- data.frame(itemD, r)
+            colnames(pbiDF) <- c("ID", "r")
+            return(pbiDF)
+        }
+        
+        myAlpha <- function(data) {
+            alphaRes <- reliability(data, itemal = T)
+            if (length(alphaRes$N_person) == 0) {
+                n <- sprintf("%d",alphaRes$nPerson)
+                items <- sprintf("%d",alphaRes$nItem)
+                mean <- sprintf("%.2f",round(alphaRes$scaleMean,2))
+                sd <- sprintf("%.2f",round(alphaRes$scaleSD,2))
+                alpha <- substring(sprintf("%.3f",round(alphaRes$alpha,3)),2,5)
+            } else {
+                n <- sprintf("%d",alphaRes$N_person)
+                items <- sprintf("%d",alphaRes$N_item)
+                mean <- sprintf("%.2f",round(alphaRes$scale.mean,2))
+                sd <- sprintf("%.2f",round(alphaRes$scale.sd,2))
+                alpha <- substring(sprintf("%.3f",round(alphaRes$alpha,3)),2,5)
+            }
+            
+            sumStats <- data.frame(Total=c(n,items,alpha))
+            rownames(sumStats) <- c("N","Number of items","Cronbach's alpha")
+            if (length(alphaRes$N_person) == 0) {
+                dropif <- round(ifelse(is.na(alphaRes$alphaIfDeleted),0,alphaRes$alphaIfDeleted),3)
+                r.drop <- round(ifelse(is.na(alphaRes$pBis), 0, alphaRes$pBis),3)
+                item.mean <- round(alphaRes$itemMean,3)
+                itemStats <- data.frame(dropif,r.drop,item.mean)
+                rownames(itemStats) <- colnames(data)
+            } else {
+                dropif <- round(ifelse(is.na(alphaRes$alpha.if.deleted),0,alphaRes$alpha.if.deleted),3)
+                r.drop <- round(ifelse(is.na(alphaRes$pbis), 0, alphaRes$pbis),3)
+                item.mean <- round(alphaRes$item.mean,3)
+                itemStats <- data.frame(dropif,r.drop,item.mean)
+                rownames(itemStats) <- attr(alphaRes$item.mean,"names")
+            }
+            colnames(itemStats) <- c("Drop if","r dropped","IF")
+            itemStats2 <- cbind(itemStats,brownRpbi(data,c()))
+            itemStats <- itemStats2[,c(1, 2, 5, 3, 4)]
+            
+            return(list(sumStats,itemStats))
+        }
+        
+        myAlpha(dat)
+        
     })
+    
+    
     
     
     
@@ -382,7 +442,7 @@ shinyServer(function(input, output) {
         }
         
         boxplot(x, horizontal=TRUE, xlab= "Mean and +/-1 SD are displayed in red.")
-        stripchart(x, pch = 16, add = TRUE)
+        beeswarm(x, horizontal=TRUE, col = 4, pch = 16, add = TRUE)
         points(mean(x), 0.9, pch = 18, col = "red", cex = 2)
         arrows(mean(x), 0.9, mean(x) + sd(x), length = 0.1, angle = 45, col = "red")
         arrows(mean(x), 0.9, mean(x) - sd(x), length = 0.1, angle = 45, col = "red")
@@ -439,4 +499,3 @@ shinyServer(function(input, output) {
     })
     
 })
-
